@@ -1,0 +1,54 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+.react-datepicker-wrapper {
+  @apply w-full;
+}
+
+.react-datepicker {
+  @apply bg-white border border-gray-200 rounded-2xl shadow-xl p-4 w-full max-w-xs;
+}
+
+.react-datepicker__time-container {
+  @apply w-full bg-white rounded-2xl;
+}
+
+.react-datepicker__header {
+  @apply bg-blue-600 text-white font-semibold py-3 px-4 rounded-t-lg;
+}
+
+.react-datepicker__time-box {
+  @apply rounded-lg;
+}
+
+.react-datepicker__time-list {
+  @apply py-2 px-2 max-h-48 overflow-y-auto;
+}
+
+.react-datepicker__time-list-item {
+  @apply py-2 px-3 text-gray-800 hover:bg-blue-100 hover:text-blue-600 cursor-pointer transition duration-200 ease-in-out rounded-md;
+}
+
+.react-datepicker__time-list-item--selected {
+  @apply bg-blue-600 text-white font-semibold;
+}
+
+.react-datepicker__time-caption {
+  @apply text-white font-medium;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

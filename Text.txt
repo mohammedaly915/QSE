@@ -1,0 +1,299 @@
+import React, { useState } from 'react';
+import { FaCheckCircle, FaArrowRight, FaFileExport, FaRedoAlt, FaFileUpload, FaStepBackward, FaStepForward, FaClipboardList, FaUsers, FaCalendarAlt } from 'react-icons/fa';
+import InputField from '../component/Form/InputField';
+import MyTimePicker from '../component/Form/MyTimePicker';
+import MyDatePicker from '../component/Form/DatePicker';
+import FileUpload from '../component/Form/FileUpload';
+import * as XLSX from 'xlsx';
+
+const AuditPage = () => {
+  const [formData, setFormData] = useState({
+    organizationName: '',
+    date: '',
+    time: '',
+    auditType: '',
+    scheme: '',
+    auditTeam: [{ name: '', position: '', responsibility: '' }],
+    openingMeeting: { date: '', time: '', attendeesList: '' },
+    agenda: null,
+  });
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [resetDate, setResetDate] = useState(false);
+
+  const steps = [
+    { label: 'Step 1', icon: <FaClipboardList />, description: 'Organization Details' },
+    { label: 'Step 2', icon: <FaUsers />, description: 'Audit Team' },
+    { label: 'Step 3', icon: <FaCalendarAlt />, description: 'Opening Meeting' },
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  const handleDateSelect = (date) => {
+    setFormData((prev) => ({ ...prev, date }));
+  };
+
+  const handleTimeSelect = (time) => {
+    setFormData((prev) => ({ ...prev, time }));
+  };
+
+  const handleTeamMemberChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedTeam = formData.auditTeam.map((member, i) =>
+      i === index ? { ...member, [name]: value } : member
+    );
+    setFormData((prevData) => ({ ...prevData, auditTeam: updatedTeam }));
+  };
+
+  const addTeamMember = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      auditTeam: [...prevData.auditTeam, { name: '', position: '', responsibility: '' }],
+    }));
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel')) {
+      setFormData((prevData) => ({ ...prevData, agenda: file }));
+    } else {
+      alert('Please upload a valid Excel file.');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      organizationName: '',
+      date: '',
+      time: '',
+      auditType: '',
+      scheme: '',
+      auditTeam: [{ name: '', position: '', responsibility: '' }],
+      openingMeeting: { date: '', time: '', attendeesList: '' },
+      agenda: null,
+    });
+    setResetDate(true);
+  };
+
+  const handleRecommend = () => {
+    console.log(formData);
+  };
+
+  const exportToExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    const sheetData = [
+      ['Organization Name', formData.organizationName],
+      ['Date', formData.date],
+      ['Time', formData.time],
+      ['Audit Type', formData.auditType],
+      ['Scheme', formData.scheme],
+      ...formData.auditTeam.map((member, index) => [
+        `Team Member ${index + 1} - Name`, member.name,
+        'Position', member.position,
+        'Responsibility', member.responsibility,
+      ]),
+      ['Opening Meeting Date', formData.openingMeeting.date],
+      ['Opening Meeting Time', formData.openingMeeting.time],
+      ['Attendees List', formData.openingMeeting.attendeesList],
+    ];
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Audit Data');
+    XLSX.writeFile(workbook, 'AuditData.xlsx');
+  };
+
+  const nextStep = () => {
+    if (currentStep < 3) setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  return (
+    <div className="p-5 bg-gray-50 min-h-screen mt-16">
+      {/* Progress Bar */}
+      <div className="flex justify-between mb-5">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className={`flex-1 flex flex-col items-center transition-all duration-300 ease-in-out ${
+              index + 1 <= currentStep ? 'text-primeColor' : 'text-gray-400'
+            }`}
+          >
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md ${
+                index + 1 <= currentStep ? 'bg-primeColor' : 'bg-gray-200'
+              }`}
+            >
+              {step.icon}
+            </div>
+            <p className="mt-2 text-sm font-medium">{step.description}</p>
+          </div>
+        ))}
+      </div>
+
+      <form className="p-8 text-start max-w-2xl mx-auto bg-white shadow-2xl rounded-lg border border-gray-200 space-y-8">
+        {currentStep === 1 && (
+          <div>
+            <InputField
+              label="Organization Name"
+              type="text"
+              name="organizationName"
+              value={formData.organizationName}
+              onChange={handleInputChange}
+              placeholder="Enter organization name"
+              required
+            />
+
+            <div className="flex gap-4">
+              <MyDatePicker holder="Date" onChange={handleDateSelect} width={100} resetDate={resetDate} />
+              <MyTimePicker holder="Time" onChange={handleTimeSelect} dateSelected={formData.date} width={100} />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-lg font-semibold text-gray-700">Audit Type</label>
+              <select
+                name="auditType"
+                value={formData.auditType}
+                onChange={handleInputChange}
+                className="block appearance-none w-full bg-gray-100 border border-gray-300 rounded-md py-3 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-gray-700"
+              >
+                <option value="">Select Audit Type</option>
+                <option value="Internal Audit">Internal Audit</option>
+                <option value="External Audit">External Audit</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-lg font-semibold text-gray-700">Scheme</label>
+              <select
+                name="scheme"
+                value={formData.scheme}
+                onChange={handleInputChange}
+                className="block appearance-none w-full bg-gray-100 border border-gray-300 rounded-md py-3 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-gray-700"
+              >
+                <option value="">Select Scheme</option>
+                <option value="ISO 15189-2022">ISO 15189-2022</option>
+                <option value="JCI Laboratory">JCI Laboratory</option>
+                <option value="GAHAR">GAHAR</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div>
+            <h3 className="text-2xl text-center font-semibold mt-3 mb-2 text-blue-600">Audit Team</h3>
+            {formData.auditTeam.map((member, index) => (
+              <div key={index} className="mb-2 bg-gray-100 p-4 rounded-lg shadow-inner">
+                <label className="block font-medium text-blue-700 mb-2">Team Member {index + 1}</label>
+                <InputField
+                  label="Name"
+                  type="text"
+                  name="name"
+                  value={member.name}
+                  onChange={(e) => handleTeamMemberChange(index, e)}
+                  placeholder="Name"
+                  required
+                />
+                <label className="block text-lg font-semibold text-gray-700">Position</label>
+                <select
+                  name="position"
+                  value={member.position}
+                  onChange={(e) => handleTeamMemberChange(index, e)}
+                  className="block appearance-none w-full bg-gray-100 border border-gray-300 rounded-md py-3 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-gray-700"
+                >
+                  <option value="">Select Position</option>
+                  <option value="Lead Auditor">Lead Auditor</option>
+                  <option value="Technical Assessor">Technical Assessor</option>
+                  <option value="Subject Matter Expert">Subject Matter Expert</option>
+                  <option value="Team Leader">Team Leader</option>
+                  <option value="Other">Other</option>
+                </select>
+                <InputField
+                  label="Responsibility"
+                  type="text"
+                  name="responsibility"
+                  value={member.responsibility}
+                  onChange={(e) => handleTeamMemberChange(index, e)}
+                  placeholder="Responsibility"
+                />
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addTeamMember}
+              className="mt-2 mb-4 px-4 py-2 bg-primeColor text-white font-medium rounded-lg hover:bg-green-600 transition-all"
+            >
+              Add Team Member
+            </button>
+          </div>
+        )}
+
+        {currentStep === 3 && (
+  <div>
+    <h3 className="text-2xl text-center font-semibold mt-3 mb-2 text-blue-600">Opening Meeting Details</h3>
+    <MyDatePicker holder="Opening Meeting Date" onChange={(date) => setFormData(prev => ({ ...prev, openingMeeting: { ...prev.openingMeeting, date } }))} />
+    <MyTimePicker holder="Opening Meeting Time" onChange={(time) => setFormData(prev => ({ ...prev, openingMeeting: { ...prev.openingMeeting, time } }))} />
+
+    <InputField
+      label="Attendees List"
+      type="text"
+      name="attendeesList"
+      value={formData.openingMeeting.attendeesList}
+      onChange={(e) => setFormData(prev => ({ ...prev, openingMeeting: { ...prev.openingMeeting, attendeesList: e.target.value } }))}
+      placeholder="Enter attendees' names"
+      required
+    />
+
+    <FileUpload
+      file={formData.agenda}
+      label="Upload Agenda (Excel file)"
+      handleFileUpload={handleFileUpload}
+      fileType="agendaFile"
+      Icon={<FaFileUpload />}
+    />
+  </div>
+)}
+
+        <div className="flex justify-between mt-5">
+          {currentStep > 1 && (
+            <button type="button" onClick={prevStep} className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 shadow">
+              <FaStepBackward /> Previous
+            </button>
+          )}
+          {currentStep < 3 ? (
+            <button type="button" onClick={nextStep} className="px-4 py-2 bg-primeColor text-white rounded-lg hover:bg-green-600 shadow">
+              Next <FaStepForward />
+            </button>
+          ) : (
+            <button type="button" onClick={handleRecommend} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 shadow">
+              Submit <FaFileExport />
+            </button>
+          )}
+        </div>
+      </form>
+      <div className="mt-5 flex gap-2">
+        <button onClick={resetForm} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 shadow">
+          <FaRedoAlt /> Reset Form
+        </button>
+        <button onClick={exportToExcel} className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 shadow">
+          <FaFileUpload /> Export to Excel
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+export default AuditPage;
+
+
+<div className="flex gap-4">
+              <MyDatePicker holder="Date" onChange={handleDateSelect} width={100} resetDate={resetDate} />
+              <MyTimePicker holder="Time" onChange={handleTimeSelect} dateSelected={formData.date} width={100} />
+            </div>

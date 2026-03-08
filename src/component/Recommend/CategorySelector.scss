@@ -1,0 +1,64 @@
+// Define colors for each category
+$green-color: #28a745;
+$yellow-color: #ffc107;
+$blue-color: #007bff;
+$orange-color: #fd7e14; // ISO orange color
+
+.category-selector {
+  .category-button {
+    // Common styles for all category buttons
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    border-bottom: 4px solid transparent;
+    transition: all 0.3s ease-in-out;
+    transform: scale(1);
+    cursor: pointer;
+
+    // Hover effect
+    &:hover {
+      transform: scale(1.05);
+      color: #000;
+    }
+
+    // Green (QSE)
+    &.green {
+      color: $green-color;
+      &.selected {
+        border-color: $green-color;
+        color: darken($green-color, 10%);
+        transform: scale(1.05);
+      }
+    }
+
+    // Yellow (GAHAR)
+    &.yellow {
+      color: $yellow-color;
+      &.selected {
+        border-color: $yellow-color;
+        color: darken($yellow-color, 10%);
+        transform: scale(1.05);
+      }
+    }
+
+    // Blue (JCI)
+    &.blue {
+      color: $blue-color;
+      &.selected {
+        border-color: $blue-color;
+        color: darken($blue-color, 10%);
+        transform: scale(1.05);
+      }
+    }
+
+    // Orange (ISO)
+    &.orange {
+      color: $orange-color;
+      &.selected {
+        border-color: $orange-color;
+        color: darken($orange-color, 10%);
+        transform: scale(1.05);
+      }
+    }
+  }
+}
